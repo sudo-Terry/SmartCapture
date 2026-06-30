@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  로그인 시 자동 실행용 LaunchAgent.
+  설치:
+    1) build_app.sh 로 만든 SmartCapture.app 을 /Applications 로 복사
+    2) 아래 ProgramArguments 경로가 맞는지 확인
+    3) 이 파일을 ~/Library/LaunchAgents/ 로 복사
+    4) launchctl load ~/Library/LaunchAgents/com.terrykim.smartcapture.plist
+-->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.terrykim.smartcapture</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Applications/SmartCapture.app/Contents/MacOS/SmartCapture</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <false/>
+</dict>
+</plist>

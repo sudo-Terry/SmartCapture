@@ -14,6 +14,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private lazy var searchIndex = SearchIndex(directory: Config.appSupportDir)
     private lazy var searchController = SearchController(index: searchIndex)
     private var vlmService: VLMService?
+    private var folderWatcher: FolderWatcher?
 
     private func makeVLMService() -> VLMService? {
         guard config.vlmEnabled else { return nil }
@@ -39,6 +40,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             self?.searchIndex.remove(path: path)
         }
         cleanupService.start()
+
+        // 시작 시 한 번, 그리고 저장 폴더 변화를 감지할 때마다 없는 파일을 인덱스에서 정리한다.
+        // (사용자가 Finder 등에서 캡처를 직접 지운 경우 대응)
+        searchIndex.pruneMissing()
+        folderWatcher = FolderWatcher(url: config.saveDirectory) { [weak self] in
+            self?.searchIndex.pruneMissing()
+        }
+        folderWatcher?.start()
     }
 
     // MARK: - 메뉴 막대

@@ -123,13 +123,19 @@ final class SearchIndex {
                 sqlite3_bind_int(stmt, 2, Int32(limit))
             }
 
+            var missingPaths: [String] = []
             while sqlite3_step(stmt) == SQLITE_ROW {
                 let path = sqlite3_column_text(stmt, 0).map { String(cString: $0) } ?? ""
+                guard !path.isEmpty else { continue }
+                // 사용자가 Finder 등에서 직접 지운 파일은 결과에서 제외하고, 인덱스에서도 정리.
+                guard FileManager.default.fileExists(atPath: path) else {
+                    missingPaths.append(path)
+                    continue
+                }
                 let at = sqlite3_column_double(stmt, 1)
                 let ocr = sqlite3_column_text(stmt, 2).map { String(cString: $0) } ?? ""
                 let tags = sqlite3_column_text(stmt, 3).map { String(cString: $0) } ?? ""
                 let caption = sqlite3_column_text(stmt, 4).map { String(cString: $0) } ?? ""
-                guard !path.isEmpty else { continue }
                 results.append(Result(
                     path: path,
                     capturedAt: Date(timeIntervalSince1970: at),
@@ -137,7 +143,43 @@ final class SearchIndex {
                     tags: tags,
                     caption: caption))
             }
+            sqlite3_finalize(stmt)
+            stmt = nil
+            deleteRows(missingPaths)   // 없는 파일 행을 즉시 제거
             return results
+        }
+    }
+
+    /// 인덱스 전체를 훑어 실제로 존재하지 않는 파일의 행을 제거한다.
+    /// (폴더 감시/앱 시작 시 호출 — 검색을 열지 않아도 인덱스를 깨끗하게 유지)
+    func pruneMissing() {
+        queue.async {
+            var paths: [String] = []
+            var stmt: OpaquePointer?
+            if sqlite3_prepare_v2(self.db, "SELECT path FROM screenshots;", -1, &stmt, nil) == SQLITE_OK {
+                while sqlite3_step(stmt) == SQLITE_ROW {
+                    if let c = sqlite3_column_text(stmt, 0) { paths.append(String(cString: c)) }
+                }
+            }
+            sqlite3_finalize(stmt)
+            let missing = paths.filter { !FileManager.default.fileExists(atPath: $0) }
+            self.deleteRows(missing)
+            if !missing.isEmpty {
+                NSLog("[SmartCapture] 삭제된 파일 \(missing.count)개를 인덱스에서 제거했습니다.")
+            }
+        }
+    }
+
+    /// 주어진 경로들의 행을 삭제한다. 반드시 queue 위에서 호출할 것.
+    private func deleteRows(_ paths: [String]) {
+        guard !paths.isEmpty else { return }
+        for path in paths {
+            var stmt: OpaquePointer?
+            guard sqlite3_prepare_v2(db, "DELETE FROM screenshots WHERE path = ?;", -1, &stmt, nil) == SQLITE_OK
+            else { continue }
+            sqlite3_bind_text(stmt, 1, path, -1, SQLITE_TRANSIENT)
+            sqlite3_step(stmt)
+            sqlite3_finalize(stmt)
         }
     }
 }

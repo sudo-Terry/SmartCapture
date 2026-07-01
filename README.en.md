@@ -89,18 +89,27 @@ model, and more.
 
 ## Troubleshooting
 
-**The hotkey fires but nothing is saved.**
-This is a Screen Recording permission issue, not a hotkey conflict. The app uses `⌃⌥⌘`, while the
-built-in screenshot uses `⌘⇧`. Grant permission and relaunch. Because of ad-hoc signing, rebuilding
+<details>
+<summary>The hotkey fires but nothing is saved</summary>
+
+This is a Screen Recording permission issue, not a hotkey conflict (the app uses `⌃⌥⌘`, while the
+built-in screenshot uses `⌘⇧`). Grant permission and relaunch. Because of ad-hoc signing, rebuilding
 the app can reset the permission; signing with a self-signed certificate keeps it
 (`SIGN_IDENTITY="Name" ./build_app.sh`).
+</details>
 
-**The permission warning looks alarming.**
+<details>
+<summary>The permission warning looks alarming</summary>
+
 It is the standard macOS warning shown to every app that captures the screen. SmartCapture only takes
 still images and does no audio or continuous recording.
+</details>
 
-**Search returns nothing.**
+<details>
+<summary>Search returns nothing</summary>
+
 The index may be empty. Grant permission, take a capture, and search again.
+</details>
 
 ## License
 

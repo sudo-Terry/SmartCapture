@@ -21,11 +21,17 @@ mkdir -p "${APP_BUNDLE}/Contents/Resources"
 cp "${BIN_PATH}" "${APP_BUNDLE}/Contents/MacOS/${APP_NAME}"
 cp "Resources/Info.plist" "${APP_BUNDLE}/Contents/Info.plist"
 
-# Code signing. Defaults to ad-hoc ("-").
-# With a self-signed or Developer ID certificate:
-#   SIGN_IDENTITY="SmartCapture Dev" ./build_app.sh
-# A stable certificate keeps the Screen Recording permission across rebuilds.
-SIGN_IDENTITY="${SIGN_IDENTITY:--}"
+# Code signing. Prefers a stable self-signed identity so the Screen Recording
+# permission survives rebuilds; falls back to ad-hoc ("-") if none is present.
+# Override with:  SIGN_IDENTITY="Your Cert Name" ./build_app.sh
+STABLE_IDENTITY="SmartCapture Self-Signed"
+if [ -z "${SIGN_IDENTITY:-}" ]; then
+    if security find-identity -p codesigning 2>/dev/null | grep -q "${STABLE_IDENTITY}"; then
+        SIGN_IDENTITY="${STABLE_IDENTITY}"
+    else
+        SIGN_IDENTITY="-"
+    fi
+fi
 if [ "${SIGN_IDENTITY}" = "-" ]; then
     echo "Signing (ad-hoc; permission may reset on rebuild)..."
 else

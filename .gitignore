@@ -63,3 +63,6 @@ fastlane/test_output
 
 # Build output
 *.app/
+
+# Local assistant notes
+CLAUDE.md

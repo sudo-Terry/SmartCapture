@@ -237,7 +237,7 @@ private final class ResultCell: NSTableCellView {
         let body = (result.caption.isEmpty ? result.ocr : result.caption)
             .replacingOccurrences(of: "\n", with: " ")
             .trimmingCharacters(in: .whitespacesAndNewlines)
-        let tagPart = result.tags.isEmpty ? "" : "  ·  🏷 \(result.tags)"
+        let tagPart = result.tags.isEmpty ? "" : "  ·  \(result.tags)"
         snippetLabel.stringValue = body.isEmpty
             ? "\(date)\(tagPart)"
             : "\(date)\(tagPart)\n\(body)"

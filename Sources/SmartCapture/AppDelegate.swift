@@ -104,7 +104,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         // 2) 모델 선택 — 설치된 Ollama 모델을 조회
         let models = VLMService.installedModels(endpoint: config.vlmEndpoint)
         if models == nil {
-            let status = NSMenuItem(title: "⚠︎ Ollama 서버에 연결 안 됨", action: nil, keyEquivalent: "")
+            let status = NSMenuItem(title: "Ollama 서버에 연결 안 됨", action: nil, keyEquivalent: "")
             status.isEnabled = false
             menu.addItem(status)
             menu.addItem(makeItem("Ollama 설치하기…", #selector(openOllamaSite)))
